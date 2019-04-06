@@ -1,0 +1,19 @@
+{
+  "name": "x",
+  "version": "1.0.0",
+  "description": "",
+  "main": "main.js",
+  "scripts": {
+    "compile": "tsc -w",
+    "dev": "./dev.sh",
+    "dev_server": "WATCH='./build' node devServer/server.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "tslint": "^5.13.1",
+    "tslint-config-airbnb": "^5.11.1",
+    "typescript": "^2.9.2"
+  }
+}

@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Light The Dark</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" type="text/css" media="screen" href="main.css">
+</head>
+<body>
+    <canvas id="canvas" width="512" height="512"></canvas>
+
+    <script>
+        window.canvas = document.getElementById('canvas');
+        window.ctx = canvas.getContext('2d');
+
+        window.clear = function (x, y) {
+            ctx.clearRect(x, y, canvas.width, canvas.height);
+        }
+
+        window.drawLine = function (startPoint, endPoint) {
+            ctx.strokeStyle = '#229922';
+            ctx.beginPath();
+            ctx.moveTo(startPoint.x, startPoint.y);
+            ctx.lineTo(endPoint.x, endPoint.y);
+            ctx.closePath();
+            ctx.stroke();
+        }
+
+        window.drawPoint = function (position, radius = 3) {
+            ctx.fillStyle = '#FF0000';
+            ctx.beginPath();
+            ctx.arc(position.x, position.y, radius, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.fillStyle = '#000000';
+        }
+
+        window.drawImage = function (img, x, y) {
+            ctx.drawImage(img, x, y);
+        };
+    </script>
+
+    <script src="build/main.js" type="module"></script>
+</body>
+</html>
