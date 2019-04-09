@@ -4,7 +4,7 @@ export class Entity {
     constructor(x, y) {
         this.position = new Vector2();
         this.velocity = new Vector2();
-        this.movementSpeed = 100;
+        this.movementSpeed = 200;
         this.applyControls = (commands) => {
             this.velocity.set(commands.has('moveRight') ? -1 : commands.has('moveLeft') ? 1 : 0, commands.has('moveUp') ? -1 : commands.has('moveDown') ? 1 : 0).normalize().scale(this.movementSpeed);
         };

@@ -1,7 +1,8 @@
 import { Vector2 } from './common/Vector2.js';
 import { LineSegment } from './common/LineSegment.js';
+// ToDo use canvas width
 const position = new Vector2();
-const width = 512; // ToDo usecanvas width
+const width = 512;
 const widthOffset = width / 2;
 const height = 512;
 const heightOffset = height / 2;
@@ -9,12 +10,18 @@ const topRightCorner = new Vector2(width, 0);
 const bottomRightCorner = new Vector2(width, height);
 const bottomLeftCorner = new Vector2(0, height);
 const topLeftCorner = new Vector2(0, 0);
-const edges = [
-    new LineSegment(topLeftCorner, topRightCorner),
-    new LineSegment(topRightCorner, bottomRightCorner),
-    new LineSegment(bottomRightCorner, bottomLeftCorner),
-    new LineSegment(bottomLeftCorner, topLeftCorner),
-];
+const corners = {
+    topRight: topRightCorner,
+    bottomRight: bottomRightCorner,
+    bottomLeft: bottomLeftCorner,
+    topLeft: topLeftCorner,
+};
+const edges = {
+    top: new LineSegment(topLeftCorner, topRightCorner),
+    right: new LineSegment(topRightCorner, bottomRightCorner),
+    bottom: new LineSegment(bottomRightCorner, bottomLeftCorner),
+    left: new LineSegment(bottomLeftCorner, topLeftCorner),
+};
 export const viewport = {
     init,
     position,
@@ -22,7 +29,7 @@ export const viewport = {
     width,
     height,
     follow,
-    corners: [topRightCorner, bottomRightCorner, bottomLeftCorner, topLeftCorner],
+    corners,
 };
 function init() {
 }

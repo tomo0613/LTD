@@ -6,7 +6,7 @@ export class Entity {
     public velocity = new Vector2();
     public width: number;
     public height: number;
-    public movementSpeed = 100;
+    public movementSpeed = 200;
 
     constructor(x: number, y: number) {
         this.position.set(x, y);
