@@ -1,9 +1,12 @@
-import {Entity} from './world/Entity.js';
+import {Entity} from './asset/Entity.js';
 import {Field} from './world/Field.js';
 import {LineSegment} from './common/LineSegment.js';
 import {gameLoop} from './gameLoop.js';
 import {viewport} from './viewport.js';
+import {canvasRenderer} from './canvasRenderer.js';
 import raycastHelper from './raycastHelper.js';
+import {loadImage} from './utilities/imageLoader.js';
+import {parseSpriteSheet} from './utilities/spriteSheetParser.js';
 
 import mapHelper, {WorldMap} from './mapHelper.js';
 
@@ -11,8 +14,6 @@ interface TemporaryProps {
     fieldRowIndex?: number;
     fieldColumnIndex?: number;
 }
-
-const canvas = document.getElementById('canvas') as HTMLCanvasElement;
 
 const aWorldMap = [
     [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
@@ -96,59 +97,56 @@ const $World = (function () {
     }
 })();
 
-$World.setMap(aWorldMap);
+// const lightRadius = (function () {
+//     const frameBuffer = document.createElement('canvas');
+//     frameBuffer.width = frameBuffer.height = 512;
+//     const renderingContext = frameBuffer.getContext('2d');
 
-raycastHelper.init(viewport, $World.edges);
+//     renderingContext.fillRect(0, 0, frameBuffer.width, frameBuffer.height);
+//     renderingContext.globalCompositeOperation = 'destination-out';
+//     renderingContext.filter = 'blur(50px)';
 
-const avatar = new Entity(256, 256);
+//     renderingContext.beginPath();
+//     renderingContext.arc(256, 256, 150, 0, Math.PI * 2);
+//     renderingContext.fill();
 
-viewport.follow(avatar);
+//     return frameBuffer;
+// })();
 
-function updateWorld(dt: number) {
-    avatar.move(dt);
-}
+(async function init() {
+    const avatarImg = await loadImage('../img/militiaWarrior.png');
+    const avatarSprites = parseSpriteSheet(avatarImg, 216 / 6, 108 / 3, spriteSheet => ({
+        idle: spriteSheet.to(0, 3).get(),
+        walk: spriteSheet.from(1, 0).to(1, 5).get(),
+        attack: spriteSheet.from(2, 0).to(2, 3).get(),
+    }), {scale: 2});
 
-function drawScene() {
-    // ToDo use viewport w/h
-    (window as any).clear(0, 0);
-    const shadows = raycastHelper.visualizeLineOfSight(avatar.position);
-    // (window as any).drawImage(shadows, 256 - viewport.position.x, 256 - viewport.position.y);
-    (window as any).drawImage(shadows, 0, 0);
-    (window as any).drawPoint({x: 256, y: 256});
+    const avatar = new Entity(256, 256, avatarSprites);
+    const entities = [avatar];
 
-    visualizeEdges($World.edges);
-}
+    avatar.animation.setClip('walk').setSpeed(128);
 
-gameLoop.init(drawScene, updateWorld);
-gameLoop.start();
+    $World.setMap(aWorldMap);
 
-/////////////////////////////////////////////////////////////
+    viewport.init(640, 480);
+    viewport.followTarget(avatar);
 
-function visualizeEdges(edges: LineSegment[]) {
-    // const rndHex = () => Math.round(Math.random() * 255).toString(16);
-    // ctx.strokeStyle = `#${rndHex()}${rndHex()}${rndHex()}`;
+    raycastHelper.init(viewport, $World.edges);
 
-    edges.forEach((edge) => {
-        // (<any>window).drawLine(edge.startPoint, edge.endPoint);
-        (<any>window).drawLine({
-            x: 256 - viewport.position.x + edge.startPoint.x,
-            y: 256 - viewport.position.y + edge.startPoint.y,
-        }, {
-            x: 256 - viewport.position.x + edge.endPoint.x,
-            y: 256 - viewport.position.y + edge.endPoint.y,
-        });
-    });
-}
+    canvasRenderer.init(viewport);
+    gameLoop.init(drawScene, updateWorld);
+    gameLoop.start();
 
-// castLight
-function clipArc(ctx, x, y, radius = 100) {
-    ctx.globalCompositeOperation = 'destination-out';
+    function updateWorld(dt: number) {
+        avatar.update(dt);
+    }
 
-    ctx.filter = 'blur(25px)';
-    ctx.beginPath();
-    ctx.arc(x, y, radius, 0, 2 * Math.PI);
-    ctx.fill();
-
-    ctx.globalCompositeOperation = 'source-over';
-    ctx.filter = 'none';
-}
+    function drawScene() {
+        canvasRenderer.clear();
+        const shadowPolygon = raycastHelper.visualizeLineOfSight(avatar.position);
+        // canvasRenderer.drawImage(lightRadius);
+        canvasRenderer.drawImage(shadowPolygon);
+        canvasRenderer.drawScene(entities);
+        // visualizeEdges($World.edges);
+    }
+})();

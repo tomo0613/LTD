@@ -1,5 +1,6 @@
 import inputChangeObserver from '../inputHandler.js';
 import {Vector2} from '../common/Vector2.js';
+import {AnimationHandler, AnimationClips} from './AnimationHandler.js';
 
 export class Entity {
     public position = new Vector2();
@@ -7,9 +8,11 @@ export class Entity {
     public width: number;
     public height: number;
     public movementSpeed = 200;
+    public animation: AnimationHandler;
 
-    constructor(x: number, y: number) {
+    constructor(x: number, y: number, animationClips: AnimationClips) {
         this.position.set(x, y);
+        this.animation = new AnimationHandler(animationClips);
 
         inputChangeObserver.subscribe(this.applyControls);
     }
@@ -21,13 +24,9 @@ export class Entity {
         ).normalize().scale(this.movementSpeed);
     }
 
-    move(dt: number) {
+    update(dt: number) {
+        // ToDo collision
         this.position.x += this.velocity.x * dt;
         this.position.y += this.velocity.y * dt;
     }
 }
-
-// Static / Dynamic (interact)
-//           Creature
-// https://www.youtube.com/watch?v=EHlaJvQpW3U
-// https://www.youtube.com/watch?v=oJvJZNyW_rw

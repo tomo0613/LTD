@@ -6,8 +6,8 @@ const ray = new Vector2();
 const target = new Vector2();
 const targetBefore = new Vector2();
 const targetAfter = new Vector2();
-const secondaryRayOffset = 0.0001;
-let maxRayLength = 365;
+const rayOffset = 0.0001;
+let maxRayLength = 1;
 const pointOfIntersection = new Vector2();
 const vertexPool = new VertexPool(10);
 let visibleVertices = [];
@@ -22,8 +22,8 @@ export default {
     visualizeLineOfSight,
 };
 function init({ width, height, position: viewportPosition, ...viewport }, edges) {
-    const widthOffset = width / 2;
-    const heightOffset = height / 2;
+    const horizontalOffset = width / 2;
+    const verticalOffset = height / 2;
     const viewportEdges = Object.values(viewport.edges);
     const viewportEdgeGroupA = [viewport.edges.top, viewport.edges.right];
     const viewportEdgeGroupB = [viewport.edges.bottom, viewport.edges.left];
@@ -36,11 +36,11 @@ function init({ width, height, position: viewportPosition, ...viewport }, edges)
     maxRayLength = Math.ceil(Math.sqrt(Math.pow(width / 2, 2) + Math.pow(height / 2, 2)));
     lineTo = function (x, y) {
         if (moveToFirstLine) {
-            renderingContext.moveTo(widthOffset - viewportPosition.x + x, heightOffset - viewportPosition.y + y);
+            renderingContext.moveTo(horizontalOffset - viewportPosition.x + x, verticalOffset - viewportPosition.y + y);
             moveToFirstLine = false;
         }
         else {
-            renderingContext.lineTo(widthOffset - viewportPosition.x + x, heightOffset - viewportPosition.y + y);
+            renderingContext.lineTo(horizontalOffset - viewportPosition.x + x, verticalOffset - viewportPosition.y + y);
         }
     };
     defineViewportEdgeIntersections = function () {
@@ -89,7 +89,7 @@ function visualizeLineOfSight(origin) {
     defineViewportEdgeIntersections();
     // sort vertices (corner points) by ray angle
     visibleVertices.sort((a, b) => {
-        return Math.atan2(a.y - origin.y, a.x - origin.x) > Math.atan2(b.y - origin.y, b.x - origin.x) ? 1 : 0;
+        return Math.atan2(a.y - origin.y, a.x - origin.x) > Math.atan2(b.y - origin.y, b.x - origin.x) ? 1 : -1;
     });
     renderingContext.fillRect(0, 0, frameBuffer.width, frameBuffer.height);
     renderingContext.globalCompositeOperation = 'destination-out';
@@ -98,8 +98,8 @@ function visualizeLineOfSight(origin) {
     for (let len = visibleVertices.length, i = 0; i < len; i++) {
         ray.copy(origin).subtract(visibleVertices[i]).normalize().scale(-maxRayLength);
         target.copy(origin).add(ray);
-        targetBefore.copy(target).rotateAround(origin, -secondaryRayOffset);
-        targetAfter.copy(target).rotateAround(origin, secondaryRayOffset);
+        targetBefore.copy(target).rotateAround(origin, -rayOffset);
+        targetAfter.copy(target).rotateAround(origin, rayOffset);
         // cast rays before and after a specified vertex
         if (findPointOfIntersection(origin, targetBefore, worldEdges)) {
             lineTo(pointOfIntersection.x, pointOfIntersection.y);
@@ -142,8 +142,8 @@ function findPointOfIntersection(origin, target, edges) {
     }
     if (linesIntersecting) {
         // ToDo rm
-        visualizeHitPosition(origin, pointOfIntersection);
-        visualizeRay(origin, target);
+        // visualizeHitPosition(origin, pointOfIntersection);
+        // visualizeRay(origin, target);
         return pointOfIntersection;
     }
 }
@@ -171,5 +171,15 @@ function visualizeHitPosition(origin, hitPosition) {
         x: 256 - origin.x + hitPosition.x,
         y: 256 - origin.y + hitPosition.y,
     });
+}
+// castLight
+function clipArc(ctx, x, y, radius = 100) {
+    ctx.globalCompositeOperation = 'destination-out';
+    ctx.filter = 'blur(25px)';
+    ctx.beginPath();
+    ctx.arc(x, y, radius, 0, 2 * Math.PI);
+    ctx.fill();
+    ctx.filter = 'none';
+    ctx.globalCompositeOperation = 'source-over';
 }
 //# sourceMappingURL=raycastHelper.js.map

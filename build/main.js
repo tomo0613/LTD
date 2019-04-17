@@ -1,10 +1,12 @@
-import { Entity } from './world/Entity.js';
+import { Entity } from './asset/Entity.js';
 import { Field } from './world/Field.js';
 import { gameLoop } from './gameLoop.js';
 import { viewport } from './viewport.js';
+import { canvasRenderer } from './canvasRenderer.js';
 import raycastHelper from './raycastHelper.js';
+import { loadImage } from './utilities/imageLoader.js';
+import { parseSpriteSheet } from './utilities/spriteSheetParser.js';
 import mapHelper from './mapHelper.js';
-const canvas = document.getElementById('canvas');
 const aWorldMap = [
     [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
     [' ', 'x', 'x', 'x', ' ', 'x', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', 'x', ' '],
@@ -76,47 +78,45 @@ const $World = (function () {
         return new Field(worldInterface, rowIndex, columnIndex, fieldData.trim());
     }
 })();
-$World.setMap(aWorldMap);
-raycastHelper.init(viewport, $World.edges);
-const avatar = new Entity(256, 256);
-viewport.follow(avatar);
-function updateWorld(dt) {
-    avatar.move(dt);
-}
-function drawScene() {
-    // ToDo use viewport w/h
-    window.clear(0, 0);
-    const shadows = raycastHelper.visualizeLineOfSight(avatar.position);
-    // (window as any).drawImage(shadows, 256 - viewport.position.x, 256 - viewport.position.y);
-    window.drawImage(shadows, 0, 0);
-    window.drawPoint({ x: 256, y: 256 });
-    visualizeEdges($World.edges);
-}
-gameLoop.init(drawScene, updateWorld);
-gameLoop.start();
-/////////////////////////////////////////////////////////////
-function visualizeEdges(edges) {
-    // const rndHex = () => Math.round(Math.random() * 255).toString(16);
-    // ctx.strokeStyle = `#${rndHex()}${rndHex()}${rndHex()}`;
-    edges.forEach((edge) => {
-        // (<any>window).drawLine(edge.startPoint, edge.endPoint);
-        window.drawLine({
-            x: 256 - viewport.position.x + edge.startPoint.x,
-            y: 256 - viewport.position.y + edge.startPoint.y,
-        }, {
-            x: 256 - viewport.position.x + edge.endPoint.x,
-            y: 256 - viewport.position.y + edge.endPoint.y,
-        });
-    });
-}
-// castLight
-function clipArc(ctx, x, y, radius = 100) {
-    ctx.globalCompositeOperation = 'destination-out';
-    ctx.filter = 'blur(25px)';
-    ctx.beginPath();
-    ctx.arc(x, y, radius, 0, 2 * Math.PI);
-    ctx.fill();
-    ctx.globalCompositeOperation = 'source-over';
-    ctx.filter = 'none';
-}
+// const lightRadius = (function () {
+//     const frameBuffer = document.createElement('canvas');
+//     frameBuffer.width = frameBuffer.height = 512;
+//     const renderingContext = frameBuffer.getContext('2d');
+//     renderingContext.fillRect(0, 0, frameBuffer.width, frameBuffer.height);
+//     renderingContext.globalCompositeOperation = 'destination-out';
+//     renderingContext.filter = 'blur(50px)';
+//     renderingContext.beginPath();
+//     renderingContext.arc(256, 256, 150, 0, Math.PI * 2);
+//     renderingContext.fill();
+//     return frameBuffer;
+// })();
+(async function init() {
+    const avatarImg = await loadImage('../img/militiaWarrior.png');
+    const avatarSprites = parseSpriteSheet(avatarImg, 216 / 6, 108 / 3, spriteSheet => ({
+        idle: spriteSheet.to(0, 3).get(),
+        walk: spriteSheet.from(1, 0).to(1, 5).get(),
+        attack: spriteSheet.from(2, 0).to(2, 3).get(),
+    }), { scale: 2 });
+    const avatar = new Entity(256, 256, avatarSprites);
+    const entities = [avatar];
+    avatar.animation.setClip('walk').setSpeed(128);
+    $World.setMap(aWorldMap);
+    viewport.init(640, 480);
+    viewport.followTarget(avatar);
+    raycastHelper.init(viewport, $World.edges);
+    canvasRenderer.init(viewport);
+    gameLoop.init(drawScene, updateWorld);
+    gameLoop.start();
+    function updateWorld(dt) {
+        avatar.update(dt);
+    }
+    function drawScene() {
+        canvasRenderer.clear();
+        const shadowPolygon = raycastHelper.visualizeLineOfSight(avatar.position);
+        // canvasRenderer.drawImage(lightRadius);
+        canvasRenderer.drawImage(shadowPolygon);
+        canvasRenderer.drawScene(entities);
+        // visualizeEdges($World.edges);
+    }
+})();
 //# sourceMappingURL=main.js.map

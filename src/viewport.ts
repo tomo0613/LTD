@@ -1,18 +1,12 @@
 import {Vector2} from './common/Vector2.js';
 import {LineSegment} from './common/LineSegment.js';
-import {Entity} from './world/Entity.js';
+import {Entity} from './asset/Entity.js';
 
-// ToDo use canvas width
 const position = new Vector2();
-const width = 512;
-const widthOffset = width / 2;
-const height = 512;
-const heightOffset = height / 2;
-
-const topRightCorner = new Vector2(width, 0);
-const bottomRightCorner = new Vector2(width, height);
-const bottomLeftCorner = new Vector2(0, height);
-const topLeftCorner = new Vector2(0, 0);
+const topRightCorner = new Vector2();
+const bottomRightCorner = new Vector2();
+const bottomLeftCorner = new Vector2();
+const topLeftCorner = new Vector2();
 const corners = {
     topRight: topRightCorner,
     bottomRight: bottomRightCorner,
@@ -25,45 +19,66 @@ const edges = {
     bottom: new LineSegment(bottomRightCorner, bottomLeftCorner),
     left: new LineSegment(bottomLeftCorner, topLeftCorner),
 };
+let width: number;
+let height: number;
+let horizontalCenterOffset: number;
+let verticalCenterOffset: number;
 
 export type Viewport = typeof viewport;
 
 export const viewport = {
     init,
     position,
-    edges,
     width,
     height,
-    follow,
+    horizontalCenterOffset,
+    verticalCenterOffset,
+    edges,
     corners,
+    followTarget,
 };
 
-function init() {
+function init(_width: number, _height: number) {
+    viewport.width = width = _width;
+    viewport.height = height = _height;
+    viewport.horizontalCenterOffset = horizontalCenterOffset = width / 2;
+    viewport.verticalCenterOffset = verticalCenterOffset = height / 2;
+
+    topRightCorner.set(width, 0);
+    bottomRightCorner.set(width, height);
+    bottomLeftCorner.set(0, height);
+    // topLeftCorner.set(0, 0);
 }
 
-function follow(target: Entity) {
-    const targetMoveMethod = target.move.bind(target);
+function followTarget(target: Entity) {
+    const targetUpdateMethod = target.update.bind(target);
 
-    target.move = (dt) => {
+    target.update = (dt: number) => {
         const {x: xPrev, y: yPrev} = target.position;
 
-        targetMoveMethod(dt);
+        targetUpdateMethod(dt);
 
         const {x, y} = target.position;
 
-        position.copy(target.position);
-
         if (xPrev !== x) {
-            topRightCorner.x = x + widthOffset;
-            bottomRightCorner.x = x + widthOffset;
-            bottomLeftCorner.x = x - widthOffset;
-            topLeftCorner.x = x - widthOffset;
+            position.x = x;
+            topRightCorner.x = x + horizontalCenterOffset;
+            bottomRightCorner.x = x + horizontalCenterOffset;
+            bottomLeftCorner.x = x - horizontalCenterOffset;
+            topLeftCorner.x = x - horizontalCenterOffset;
         }
         if (yPrev !== y) {
-            topRightCorner.y = y - heightOffset;
-            bottomRightCorner.y = y + heightOffset;
-            bottomLeftCorner.y = y + heightOffset;
-            topLeftCorner.y = y - heightOffset;
+            position.y = y;
+            topRightCorner.y = y - verticalCenterOffset;
+            bottomRightCorner.y = y + verticalCenterOffset;
+            bottomLeftCorner.y = y + verticalCenterOffset;
+            topLeftCorner.y = y - verticalCenterOffset;
         }
     };
+
+    position.copy(target.position);
+    topRightCorner.set(target.position.x + horizontalCenterOffset, target.position.y - verticalCenterOffset);
+    bottomRightCorner.set(target.position.x + horizontalCenterOffset, target.position.y + verticalCenterOffset);
+    bottomLeftCorner.set(target.position.x - horizontalCenterOffset, target.position.y + verticalCenterOffset);
+    topLeftCorner.set(target.position.x - horizontalCenterOffset, target.position.y - verticalCenterOffset);
 }
