@@ -7,6 +7,45 @@
     <link rel="stylesheet" type="text/css" media="screen" href="main.css">
 </head>
 <body>
+    <script>
+        console.logLazy = throttle(console.log);
+
+        function throttle(fnc, timeToWaitBeforeNextCall = 200) {
+            let timeoutId;
+            let timeStamp;
+            let nextScheduledCallTime;
+            let prevCallTime = 0;
+
+            return (...args) => {
+                nextScheduledCallTime = prevCallTime + timeToWaitBeforeNextCall;
+                timeStamp = performance.now();
+
+                if (!prevCallTime || timeStamp > nextScheduledCallTime) {
+                    fnc(...args);
+                    prevCallTime = timeStamp;
+                } else {
+                    clearTimeout(timeoutId);
+                    timeoutId = setTimeout(() => {
+                        fnc(...args);
+                        prevCallTime = timeStamp;
+                    }, timeToWaitBeforeNextCall - (timeStamp - prevCallTime));
+                }
+            };
+        }
+
+        function debounce(fnc, delay = 200, callImmediate = false) {
+            let timeoutId;
+
+            return (...args) => {
+                if (callImmediate && !timeoutId) {
+                    fnc(...args);
+                }
+                clearTimeout(timeoutId);
+                timeoutId = setTimeout(() => fnc(...args), delay);
+            };
+        }
+    </script>
+
     <canvas id="canvas"></canvas>
     <script src="build/main.js" type="module"></script>
 </body>

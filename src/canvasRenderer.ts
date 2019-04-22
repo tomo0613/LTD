@@ -1,8 +1,12 @@
 import {Viewport} from './viewport.js';
-import {Entity} from './asset/Entity.js';
+import {Entity} from './gameObject/Entity.js';
 
 const canvas = document.getElementById('canvas') as HTMLCanvasElement;
 const renderingContext = canvas.getContext('2d');
+
+let viewport: Viewport;
+let viewportHorizontalCenterOffset: number;
+let viewportVerticalCenterOffset: number;
 
 export type CanvasRenderer = typeof canvasRenderer;
 
@@ -13,7 +17,10 @@ export const canvasRenderer = {
     drawScene,
 };
 
-function init(viewport: Viewport) {
+function init(_viewport: Viewport) {
+    viewport = _viewport;
+    viewportHorizontalCenterOffset = viewport.horizontalCenterOffset;
+    viewportVerticalCenterOffset = viewport.verticalCenterOffset;
     canvas.width = viewport.width;
     canvas.height = viewport.height;
 }
@@ -27,15 +34,46 @@ function drawImage(image: CanvasImageSource, x = 0, y = 0) {
 }
 
 function drawScene(entities: Entity[]) {
-    entities.forEach((entity) => {
-        drawImage(entity.animation.getNextFrame());
-    });
+    const {position: {x: viewportX, y: viewportY}} = viewport;
+    const viewportCenterX = viewportHorizontalCenterOffset - viewportX;
+    const viewportCenterY = viewportVerticalCenterOffset - viewportY;
+
+    for (let len = entities.length, i = 0; i < len; i++) {
+        const {width, height, position: {x, y}, animation} = entities[i];
+
+        drawImage(
+            animation.getNextFrame(),
+            viewportCenterX + x - width / 2 + animation.horizontalCenterOffset,
+            viewportCenterY + y - height / 2 + animation.verticalCenterOffset,
+        );
+        // ToDo rm
+        drawRect(
+            viewportCenterX + x - width / 2,
+            viewportCenterY + y - height / 2,
+            width,
+            height,
+        );
+        drawDot(viewportCenterX + x, viewportCenterY + y);
+    }
+
 }
 
-// window.canvas = document.getElementById('canvas');
-// window.ctx = canvas.getContext('2d');
+/////////////////////////////////////////////////////////////
 
-// window.drawLine = function (startPoint, endPoint) {
+function drawDot(x: number, y: number, radius = 3) {
+    renderingContext.fillStyle = 'red';
+    renderingContext.beginPath();
+    renderingContext.arc(x, y, radius, 0, Math.PI * 2);
+    renderingContext.fill();
+    renderingContext.fillStyle = 'black';
+}
+
+function drawRect(x: number, y: number, width: number, height: number) {
+    renderingContext.strokeStyle = 'greenyellow';
+    renderingContext.strokeRect(x, y, width, height);
+}
+
+// drawLine = function (startPoint, endPoint) {
 //     ctx.strokeStyle = '#229922';
 //     ctx.beginPath();
 //     ctx.moveTo(startPoint.x, startPoint.y);
@@ -43,16 +81,6 @@ function drawScene(entities: Entity[]) {
 //     ctx.closePath();
 //     ctx.stroke();
 // }
-
-// window.drawPoint = function (position, radius = 3) {
-//     ctx.fillStyle = '#FF0000';
-//     ctx.beginPath();
-//     ctx.arc(position.x, position.y, radius, 0, Math.PI * 2);
-//     ctx.fill();
-//     ctx.fillStyle = '#000000';
-// }
-
-/////////////////////////////////////////////////////////////
 
 // function visualizeEdges(edges: LineSegment[]) {
 //     // const rndHex = () => Math.round(Math.random() * 255).toString(16);

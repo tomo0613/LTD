@@ -6,7 +6,7 @@
   "scripts": {
     "compile": "tsc -w",
     "dev": "./dev.sh",
-    "dev_server": "WATCH='./build' node devServer/server.js",
+    "devServer": "WATCH='./build' node devServer/server.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",

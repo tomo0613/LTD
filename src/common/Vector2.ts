@@ -1,6 +1,7 @@
 export class Vector2 {
-    public x: number;
-    public y: number;
+    static readonly ZERO: Vector2;
+    x: number;
+    y: number;
 
     constructor(x = 0, y = 0) {
         this.x = x;
@@ -50,3 +51,10 @@ export class Vector2 {
         return Math.sqrt(Math.pow(this.x, 2) + Math.pow(this.y, 2));
     }
 }
+
+Object.defineProperty(Vector2, 'ZERO', {
+    value: new Vector2(),
+    writable : false,
+    enumerable : true,
+    configurable : false,
+});

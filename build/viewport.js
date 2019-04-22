@@ -43,10 +43,10 @@ function init(_width, _height) {
     // topLeftCorner.set(0, 0);
 }
 function followTarget(target) {
-    const targetUpdateMethod = target.update.bind(target);
-    target.update = (dt) => {
+    const targetUpdateMethod = target.update;
+    target.update = function () {
         const { x: xPrev, y: yPrev } = target.position;
-        targetUpdateMethod(dt);
+        targetUpdateMethod.apply(target, arguments);
         const { x, y } = target.position;
         if (xPrev !== x) {
             position.x = x;

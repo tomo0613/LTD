@@ -1,5 +1,5 @@
-import {Field} from './world/Field.js';
-import {EdgeSegmentIndex} from './world/FieldEdgeSegmentBuffer.js';
+import {Field} from './gameObject/Field.js';
+import {EdgeSegmentIndex} from './gameObject/FieldEdgeSegmentBuffer.js';
 import {LineSegment} from './common/LineSegment.js';
 import {Vector2} from './common/Vector2.js';
 

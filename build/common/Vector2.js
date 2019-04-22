@@ -36,4 +36,10 @@ export class Vector2 {
         return Math.sqrt(Math.pow(this.x, 2) + Math.pow(this.y, 2));
     }
 }
+Object.defineProperty(Vector2, 'ZERO', {
+    value: new Vector2(),
+    writable: false,
+    enumerable: true,
+    configurable: false,
+});
 //# sourceMappingURL=Vector2.js.map

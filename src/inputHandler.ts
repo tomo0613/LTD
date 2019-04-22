@@ -13,6 +13,7 @@ const controls = {
     S: 'moveDown',
     A: 'moveRight',
     D: 'moveLeft',
+    CONTROL: 'attack',
 
     L: 'log', // rm
     P: 'pause',

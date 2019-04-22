@@ -1,6 +1,6 @@
 import {Vector2} from './common/Vector2.js';
 import {LineSegment} from './common/LineSegment.js';
-import {Entity} from './asset/Entity.js';
+import {Entity} from './gameObject/Entity.js';
 
 const position = new Vector2();
 const topRightCorner = new Vector2();
@@ -51,12 +51,12 @@ function init(_width: number, _height: number) {
 }
 
 function followTarget(target: Entity) {
-    const targetUpdateMethod = target.update.bind(target);
+    const targetUpdateMethod = target.update;
 
-    target.update = (dt: number) => {
+    target.update = function () {
         const {x: xPrev, y: yPrev} = target.position;
 
-        targetUpdateMethod(dt);
+        targetUpdateMethod.apply(target, arguments);
 
         const {x, y} = target.position;
 

@@ -1,14 +1,14 @@
-import {Entity} from './asset/Entity.js';
-import {Field} from './world/Field.js';
 import {LineSegment} from './common/LineSegment.js';
+import {Entity} from './gameObject/Entity.js';
+import {Field} from './gameObject/Field.js';
 import {gameLoop} from './gameLoop.js';
 import {viewport} from './viewport.js';
 import {canvasRenderer} from './canvasRenderer.js';
 import raycastHelper from './raycastHelper.js';
+import mapHelper, {WorldMap as FieldMap} from './mapHelper.js';
 import {loadImage} from './utilities/imageLoader.js';
 import {parseSpriteSheet} from './utilities/spriteSheetParser.js';
-
-import mapHelper, {WorldMap} from './mapHelper.js';
+import {createAvatar} from './world/avatar.js';
 
 interface TemporaryProps {
     fieldRowIndex?: number;
@@ -41,8 +41,8 @@ const $World = (function () {
         height: 50,
     };
     const _tmp: TemporaryProps = {};
-    let _worldMap: WorldMap;
-    let _edges: LineSegment[];
+    let fieldMap: FieldMap;
+    let edges: LineSegment[];
 
     const adjacentFieldGetter = {
         get top() {
@@ -65,7 +65,10 @@ const $World = (function () {
         getFieldAt,
         getAdjacentFields,
         get edges() {
-            return _edges;
+            return edges;
+        },
+        get blockingFields() {
+            return fieldMap.flat().filter(field => !field.empty);
         },
     };
 
@@ -79,17 +82,18 @@ const $World = (function () {
     }
 
     function setMap(worldMapData) {
-        _worldMap = worldMapData.map((row, rowIndex: PositionIndex) => {
+        fieldMap = worldMapData.map((row, rowIndex: PositionIndex) => {
             return row.map((fieldData, columnIndex: PositionIndex) => toField(rowIndex, columnIndex, fieldData));
         });
 
-        mapHelper.populateFieldEdgeBuffers(_worldMap);
-        _edges = mapHelper.defineEdges(_worldMap);
+        mapHelper.populateFieldEdgeBuffers(fieldMap);
+
+        edges = mapHelper.defineEdges(fieldMap);
         // visualizeEdges(_edges); // rm
     }
 
     function getFieldAt(rowIndex: PositionIndex, columnIndex: PositionIndex): Field|undefined {
-        return _worldMap[rowIndex] && _worldMap[rowIndex][columnIndex];
+        return fieldMap[rowIndex] && fieldMap[rowIndex][columnIndex];
     }
 
     function toField(rowIndex: PositionIndex, columnIndex: PositionIndex, fieldData: string) {
@@ -114,19 +118,12 @@ const $World = (function () {
 // })();
 
 (async function init() {
-    const avatarImg = await loadImage('../img/militiaWarrior.png');
-    const avatarSprites = parseSpriteSheet(avatarImg, 216 / 6, 108 / 3, spriteSheet => ({
-        idle: spriteSheet.to(0, 3).get(),
-        walk: spriteSheet.from(1, 0).to(1, 5).get(),
-        attack: spriteSheet.from(2, 0).to(2, 3).get(),
-    }), {scale: 2});
-
-    const avatar = new Entity(256, 256, avatarSprites);
+    const avatarSprites = await loadImage('../img/militiaWarrior.png');
+    const avatar = createAvatar(avatarSprites);
     const entities = [avatar];
 
-    avatar.animation.setClip('walk').setSpeed(128);
-
     $World.setMap(aWorldMap);
+    const blockingFields = $World.blockingFields;
 
     viewport.init(640, 480);
     viewport.followTarget(avatar);
@@ -138,7 +135,7 @@ const $World = (function () {
     gameLoop.start();
 
     function updateWorld(dt: number) {
-        avatar.update(dt);
+        avatar.update(dt, blockingFields);
     }
 
     function drawScene() {

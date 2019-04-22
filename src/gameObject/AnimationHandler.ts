@@ -1,16 +1,18 @@
 type AnimationFrames = HTMLImageElement[]|HTMLCanvasElement[];
 
-export type AnimationClips = Record<string, AnimationFrames>;
+export type Animations = Record<string, AnimationFrames>;
 
 export class AnimationHandler {
     paused = false;
     speed = 60;
+    horizontalCenterOffset = 0;
+    verticalCenterOffset = 0;
     private startTime = performance.now();
     private currentFrameIndex = 0;
-    private clips: AnimationClips;
+    private clips: Animations;
     private frames: AnimationFrames;
 
-    constructor(animationClips: AnimationClips) {
+    constructor(animationClips: Animations) {
         this.clips = animationClips;
     }
 
@@ -22,6 +24,13 @@ export class AnimationHandler {
 
     setSpeed(animationSpeed: number) {
         this.speed = animationSpeed;
+
+        return this;
+    }
+
+    setCenterOffset(horizontal = 0, vertical = 0) {
+        this.horizontalCenterOffset = horizontal;
+        this.verticalCenterOffset = vertical;
 
         return this;
     }
@@ -43,7 +52,10 @@ export class AnimationHandler {
         this.paused = true;
     }
 
-    play() {
+    play(clipId?: string) {
+        if (clipId) {
+            this.setClip(clipId);
+        }
         this.paused = false;
         this.startTime = performance.now();
     }
