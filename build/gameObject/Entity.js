@@ -1,5 +1,4 @@
 import { DynamicObject } from './DynamicObject.js';
-import { AnimationHandler } from './AnimationHandler.js';
 export var State;
 (function (State) {
     State[State["Idle"] = 0] = "Idle";
@@ -9,10 +8,9 @@ export var State;
     State[State["Die"] = 4] = "Die";
 })(State || (State = {}));
 export class Entity extends DynamicObject {
-    constructor(width, height, x, y, graphics) {
+    constructor(width, height, x, y) {
         super(width, height, x, y);
         this.movementSpeed = 200;
-        this.animation = new AnimationHandler(graphics);
     }
 }
 //# sourceMappingURL=Entity.js.map

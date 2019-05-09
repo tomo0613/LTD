@@ -39,7 +39,7 @@ const frameMapper = (function () {
         ...mapperInterface,
     };
 
-    function init(_spriteSheet: HTMLImageElement, _frameWidth: number, _frameHeight: number, options: MapperOptions) {
+    function init(_spriteSheet: HTMLImageElement, _frameWidth: number, _frameHeight: number, options?: MapperOptions) {
         spriteSheet = _spriteSheet;
         frameWidth = _frameWidth;
         frameHeight = _frameHeight;
@@ -118,7 +118,7 @@ export function parseSpriteSheet<Mapper extends SpriteSheetMapper>(
     frameWidth: number,
     frameHeight: number,
     spriteSheetMapper: Mapper,
-    options: MapperOptions,
+    options?: MapperOptions,
 ) {
     frameMapper.init(spriteSheet, frameWidth, frameHeight, options);
 

@@ -5,6 +5,7 @@ import {VertexPool} from './VertexPool.js';
 
 const frameBuffer = document.createElement('canvas');
 const renderingContext = frameBuffer.getContext('2d');
+const shadowColor = '#131720';
 
 const ray = new Vector2();
 const target = new Vector2();
@@ -42,6 +43,8 @@ function init({width, height, position: viewportPosition, ...viewport}: Viewport
 
     worldEdges = edges;
     worldVertices = defineVertices(edges);
+
+    renderingContext.fillStyle = shadowColor;
 
     worldEdges.push(...viewportEdges);
     worldVertices.push(...Object.values(viewport.corners));
@@ -117,6 +120,7 @@ function visualizeLineOfSight(origin: Vector2) {
         return Math.atan2(a.y - origin.y, a.x - origin.x) > Math.atan2(b.y - origin.y, b.x - origin.x) ? 1 : -1;
     });
 
+    renderingContext.globalCompositeOperation = 'source-over';
     renderingContext.fillRect(0, 0, frameBuffer.width, frameBuffer.height);
     renderingContext.globalCompositeOperation = 'destination-out';
     moveToFirstLine = true;
@@ -139,7 +143,6 @@ function visualizeLineOfSight(origin: Vector2) {
 
     renderingContext.closePath();
     renderingContext.fill();
-    renderingContext.globalCompositeOperation = 'source-over';
 
     return frameBuffer;
 }
@@ -154,7 +157,7 @@ function findPointOfIntersection(origin: Vector2, target: Vector2, edges: LineSe
     // https://stackoverflow.com/questions/563198/how-do-you-detect-where-two-line-segments-intersect
     for (let len = edges.length, i = 0; i < len; i++) {
         const {startPoint: {x: lineBp1X, y: lineBp1Y}, endPoint: {x: lineBp2X, y: lineBp2Y}} = edges[i];
-        // ToDo continue if edge is offscreen
+        // ToDo ?? continue if edge is offscreen
 
         const s1X = lineAp2X - lineAp1X;
         const s1Y = lineAp2Y - lineAp1Y;
@@ -181,9 +184,6 @@ function findPointOfIntersection(origin: Vector2, target: Vector2, edges: LineSe
     }
 
     if (linesIntersecting) {
-        // ToDo rm
-        // visualizeHitPosition(origin, pointOfIntersection);
-        // visualizeRay(origin, target);
         return pointOfIntersection;
     }
 }
@@ -198,35 +198,4 @@ function defineVertices(edges: LineSegment[]) {
     });
 
     return Array.from(vertexIndices.values());
-}
-
-// rm
-function visualizeRay(origin, endPoint) {
-    (<any>window).drawLine({
-        x: 256 - origin.x + origin.x,
-        y: 256 - origin.y + origin.y,
-    }, {
-        x: 256 - origin.x + endPoint.x,
-        y: 256 - origin.y + endPoint.y,
-    });
-}
-
-function visualizeHitPosition(origin, hitPosition) {
-    (window as any).drawPoint({
-        x: 256 - origin.x + hitPosition.x,
-        y: 256 - origin.y + hitPosition.y,
-    });
-}
-
-// castLight
-function clipArc(ctx, x, y, radius = 100) {
-    ctx.globalCompositeOperation = 'destination-out';
-
-    ctx.filter = 'blur(25px)';
-    ctx.beginPath();
-    ctx.arc(x, y, radius, 0, 2 * Math.PI);
-    ctx.fill();
-
-    ctx.filter = 'none';
-    ctx.globalCompositeOperation = 'source-over';
 }

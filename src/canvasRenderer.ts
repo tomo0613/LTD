@@ -1,5 +1,6 @@
 import {Viewport} from './viewport.js';
 import {Entity} from './gameObject/Entity.js';
+import {projectilePool} from './world/projectiles.js';
 
 const canvas = document.getElementById('canvas') as HTMLCanvasElement;
 const renderingContext = canvas.getContext('2d');
@@ -39,14 +40,32 @@ function drawScene(entities: Entity[]) {
     const viewportCenterY = viewportVerticalCenterOffset - viewportY;
 
     for (let len = entities.length, i = 0; i < len; i++) {
-        const {width, height, position: {x, y}, animation} = entities[i];
+        const {width, height, position: {x, y}, graphics} = entities[i];
 
         drawImage(
-            animation.getNextFrame(),
-            viewportCenterX + x - width / 2 + animation.horizontalCenterOffset,
-            viewportCenterY + y - height / 2 + animation.verticalCenterOffset,
+            graphics.getNextFrame(),
+            viewportCenterX + x - width / 2 + graphics.horizontalCenterOffset,
+            viewportCenterY + y - height / 2 + graphics.verticalCenterOffset,
         );
         // ToDo rm
+        // drawRect(
+        //     viewportCenterX + x - width / 2,
+        //     viewportCenterY + y - height / 2,
+        //     width,
+        //     height,
+        // );
+        drawDot(viewportCenterX + x, viewportCenterY + y);
+    }
+
+    for (let len = projectilePool.activeCount, i = 0; i < len; i++) {
+        const {width, height, position: {x, y}, graphics} = projectilePool.items[i];
+
+        drawImage(
+            graphics.getNextFrame(),
+            viewportCenterX + x - width / 2 + graphics.horizontalCenterOffset,
+            viewportCenterY + y - height / 2 + graphics.verticalCenterOffset,
+        );
+        // ToDo rm draw entity border
         drawRect(
             viewportCenterX + x - width / 2,
             viewportCenterY + y - height / 2,
@@ -55,7 +74,6 @@ function drawScene(entities: Entity[]) {
         );
         drawDot(viewportCenterX + x, viewportCenterY + y);
     }
-
 }
 
 /////////////////////////////////////////////////////////////

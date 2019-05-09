@@ -21,17 +21,18 @@ const controls = {
 
 window.onkeydown = window.onkeyup = ({key, type, repeat, preventDefault}) => {
     // prevent page scrolling
-    if (browserNavigationKeys.has(key)) {
+    if (browserNavigationKeys.has(key)) { // ToDo prevent ctrl+f/s/w...
         preventDefault();
     }
 
+    const isKeyDown = type === 'keydown';
     const command = controls[key.toUpperCase()];
 
-    if (!command || type === 'keydown' && repeat) {
+    if (!command || isKeyDown && repeat) {
         return;
     }
 
-    if (type === 'keydown') {
+    if (isKeyDown) {
         activeCommands.add(command);
     } else {
         activeCommands.delete(command);

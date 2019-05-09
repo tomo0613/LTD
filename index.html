@@ -8,7 +8,7 @@
 </head>
 <body>
     <script>
-        console.logLazy = throttle(console.log);
+        console.logRepeated = throttle(console.log);
 
         function throttle(fnc, timeToWaitBeforeNextCall = 200) {
             let timeoutId;

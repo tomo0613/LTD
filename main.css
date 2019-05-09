@@ -1,7 +1,8 @@
 body {
     /* background-image: linear-gradient(to right, #a8caba 0%, #5d4157 100%); */
     /* background: linear-gradient(to right, #0f0c29, #302b63, #24243e); Lawrencium */
-    background: linear-gradient(to right, #3c3b3f, #605c3c);} /* Selenium */
+    background: linear-gradient(to right, #3c3b3f, #605c3c); /* Selenium */
+}
 
 canvas {
     border: 1px solid;

@@ -1,39 +1,20 @@
 import {LineSegment} from './common/LineSegment.js';
-import {Entity} from './gameObject/Entity.js';
 import {Field} from './gameObject/Field.js';
 import {gameLoop} from './gameLoop.js';
 import {viewport} from './viewport.js';
 import {canvasRenderer} from './canvasRenderer.js';
 import raycastHelper from './raycastHelper.js';
 import mapHelper, {WorldMap as FieldMap} from './mapHelper.js';
-import {loadImage} from './utilities/imageLoader.js';
-import {parseSpriteSheet} from './utilities/spriteSheetParser.js';
+import {loadImage, loadJSON} from './utilities/loaders.js';
+import {projectilePool, setProjectileGraphics} from './world/projectiles.js';
+import {creatureAnimations, setCreatureGraphics} from './world/creatures.js';
 import {createAvatar} from './world/avatar.js';
+import {Entity} from './gameObject/Entity.js';
 
 interface TemporaryProps {
     fieldRowIndex?: number;
     fieldColumnIndex?: number;
 }
-
-const aWorldMap = [
-    [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
-    [' ', 'x', 'x', 'x', ' ', 'x', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', 'x', ' '],
-    [' ', ' ', ' ', 'x', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', 'x', ' '],
-    [' ', ' ', ' ', 'x', 'x', 'x', 'x', ' ', ' ', ' ', ' ', ' ', ' ', ' ', 'x', ' '],
-    [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', 'x', ' '],
-    [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', 'x', ' '],
-    [' ', ' ', 'x', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', 'x', ' '],
-    [' ', ' ', ' ', ' ', 'x', 'x', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', 'x', ' '],
-    [' ', 'x', 'x', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', 'x', ' '],
-    [' ', 'x', 'x', ' ', 'x', 'x', 'x', 'x', 'x', ' ', ' ', ' ', ' ', ' ', 'x', ' '],
-    [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', 'x', ' '],
-    [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', 'x', ' '],
-    [' ', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x', 'x', ' '],
-    [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', 'x', ' '],
-    [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', 'x', ' '],
-    [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', 'x', ' '],
-    [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
-];
 
 const $World = (function () {
     const fieldProps = {
@@ -101,31 +82,51 @@ const $World = (function () {
     }
 })();
 
-// const lightRadius = (function () {
-//     const frameBuffer = document.createElement('canvas');
-//     frameBuffer.width = frameBuffer.height = 512;
-//     const renderingContext = frameBuffer.getContext('2d');
+const lightRadius = (function () {
+    const radius = 180;
+    const blur = 50;
+    const frameBuffer = document.createElement('canvas');
+    const renderingContext = frameBuffer.getContext('2d');
+    frameBuffer.width = 800;
+    frameBuffer.height = 600;
 
-//     renderingContext.fillRect(0, 0, frameBuffer.width, frameBuffer.height);
-//     renderingContext.globalCompositeOperation = 'destination-out';
-//     renderingContext.filter = 'blur(50px)';
+    renderingContext.fillRect(0, 0, frameBuffer.width, frameBuffer.height);
+    renderingContext.globalCompositeOperation = 'destination-out';
+    renderingContext.filter = `blur(${blur}px)`;
 
-//     renderingContext.beginPath();
-//     renderingContext.arc(256, 256, 150, 0, Math.PI * 2);
-//     renderingContext.fill();
+    renderingContext.beginPath();
+    renderingContext.arc(frameBuffer.width / 2, frameBuffer.height / 2, radius, 0, Math.PI * 2);
+    renderingContext.fill();
 
-//     return frameBuffer;
-// })();
+    return frameBuffer;
+})();
 
 (async function init() {
-    const avatarSprites = await loadImage('../img/militiaWarrior.png');
-    const avatar = createAvatar(avatarSprites);
-    const entities = [avatar];
+    const [avatarSprites, fireBallSprite, skeletonSprite, testMap] = await Promise.all([
+        loadImage('../img/avatar.png'),
+        loadImage('../img/fireball.png'),
+        loadImage('../img/skeleton.png'),
+        loadJSON('../map/testMap.json'),
+    ]);
 
-    $World.setMap(aWorldMap);
+    setCreatureGraphics({
+        skeleton: skeletonSprite,
+    });
+
+    setProjectileGraphics({
+        fireBall: fireBallSprite,
+    });
+
+    const testSkeleton = new Entity(30, 60, 300, 256);
+    testSkeleton.graphics.init(creatureAnimations.skeleton).setCenterOffset(-14, -4).setSpeed(120).play('idle');
+
+    const avatar = createAvatar(avatarSprites);
+    const entities = [avatar, testSkeleton];
+
+    $World.setMap(testMap);
     const blockingFields = $World.blockingFields;
 
-    viewport.init(640, 480);
+    viewport.init(800, 600);
     viewport.followTarget(avatar);
 
     raycastHelper.init(viewport, $World.edges);
@@ -136,6 +137,10 @@ const $World = (function () {
 
     function updateWorld(dt: number) {
         avatar.update(dt, blockingFields);
+
+        for (let len = projectilePool.activeCount, i = 0; i < len; i++) {
+            projectilePool.items[i].update(dt, blockingFields);
+        }
     }
 
     function drawScene() {

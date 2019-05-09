@@ -22,4 +22,4 @@ export function loadJSON(url) {
         xhr.send();
     });
 }
-//# sourceMappingURL=imageLoader.js.map
+//# sourceMappingURL=loaders.js.map

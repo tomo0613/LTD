@@ -1,3 +1,4 @@
+import { projectilePool } from './world/projectiles.js';
 const canvas = document.getElementById('canvas');
 const renderingContext = canvas.getContext('2d');
 let viewport;
@@ -27,9 +28,21 @@ function drawScene(entities) {
     const viewportCenterX = viewportHorizontalCenterOffset - viewportX;
     const viewportCenterY = viewportVerticalCenterOffset - viewportY;
     for (let len = entities.length, i = 0; i < len; i++) {
-        const { width, height, position: { x, y }, animation } = entities[i];
-        drawImage(animation.getNextFrame(), viewportCenterX + x - width / 2 + animation.horizontalCenterOffset, viewportCenterY + y - height / 2 + animation.verticalCenterOffset);
+        const { width, height, position: { x, y }, graphics } = entities[i];
+        drawImage(graphics.getNextFrame(), viewportCenterX + x - width / 2 + graphics.horizontalCenterOffset, viewportCenterY + y - height / 2 + graphics.verticalCenterOffset);
         // ToDo rm
+        // drawRect(
+        //     viewportCenterX + x - width / 2,
+        //     viewportCenterY + y - height / 2,
+        //     width,
+        //     height,
+        // );
+        drawDot(viewportCenterX + x, viewportCenterY + y);
+    }
+    for (let len = projectilePool.activeCount, i = 0; i < len; i++) {
+        const { width, height, position: { x, y }, graphics } = projectilePool.items[i];
+        drawImage(graphics.getNextFrame(), viewportCenterX + x - width / 2 + graphics.horizontalCenterOffset, viewportCenterY + y - height / 2 + graphics.verticalCenterOffset);
+        // ToDo rm draw entity border
         drawRect(viewportCenterX + x - width / 2, viewportCenterY + y - height / 2, width, height);
         drawDot(viewportCenterX + x, viewportCenterY + y);
     }

@@ -1,58 +1,46 @@
-type AnimationFrames = HTMLImageElement[]|HTMLCanvasElement[];
-
-export type Animations = Record<string, AnimationFrames>;
-
-export class AnimationHandler {
-    paused = false;
-    speed = 60;
-    horizontalCenterOffset = 0;
-    verticalCenterOffset = 0;
-    private startTime = performance.now();
-    private currentFrameIndex = 0;
-    private clips: Animations;
-    private frames: AnimationFrames;
-
-    constructor(animationClips: Animations) {
+export class AnimationComponent {
+    constructor(animationClips) {
+        this.paused = false;
+        this.speed = 60;
+        this.horizontalCenterOffset = 0;
+        this.verticalCenterOffset = 0;
+        this.startTime = performance.now();
+        this.currentFrameIndex = 0;
+        if (animationClips) {
+            this.init(animationClips);
+        }
+    }
+    init(animationClips) {
         this.clips = animationClips;
+        return this;
     }
-
-    setClip(clipId: string) {
+    setClip(clipId) {
         this.frames = this.clips[clipId];
-
         return this;
     }
-
-    setSpeed(animationSpeed: number) {
+    setSpeed(animationSpeed) {
         this.speed = animationSpeed;
-
         return this;
     }
-
     setCenterOffset(horizontal = 0, vertical = 0) {
         this.horizontalCenterOffset = horizontal;
         this.verticalCenterOffset = vertical;
-
         return this;
     }
-
     getNextFrame() {
         this.currentFrameIndex = this.getNextFrameIndex();
-
         return this.frames[this.currentFrameIndex];
     }
-
     getNextFrameIndex() {
         if (this.frames.length === 1 || this.paused) {
             return this.currentFrameIndex;
         }
         return Math.floor((performance.now() - this.startTime) / this.speed % this.frames.length);
     }
-
     stop() {
         this.paused = true;
     }
-
-    play(clipId?: string) {
+    play(clipId) {
         if (clipId) {
             this.setClip(clipId);
         }
@@ -60,10 +48,6 @@ export class AnimationHandler {
         this.startTime = performance.now();
     }
 }
-
-// Static / Dynamic (interact)
-//           Creature
-
 // >>> myImg = gimp.image_list()[0]
 // >>> for l in myImg.layers:
 // ... 	pdb.gimp_selection_none(myImg)
@@ -74,3 +58,4 @@ export class AnimationHandler {
 // >>> for l in myImg.layers:
 // ... 	pdb.gimp_layer_resize_to_image_size(l)
 // ...
+//# sourceMappingURL=AnimationComponent.js.map
