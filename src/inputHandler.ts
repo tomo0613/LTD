@@ -19,16 +19,16 @@ const controls = {
     P: 'pause',
 };
 
-window.onkeydown = window.onkeyup = ({key, type, repeat, preventDefault}) => {
+window.onkeydown = window.onkeyup = ({key, ...e}: KeyboardEvent) => {
     // prevent page scrolling
     if (browserNavigationKeys.has(key)) { // ToDo prevent ctrl+f/s/w...
-        preventDefault();
+        e.preventDefault();
     }
 
-    const isKeyDown = type === 'keydown';
+    const isKeyDown = e.type === 'keydown';
     const command = controls[key.toUpperCase()];
 
-    if (!command || isKeyDown && repeat) {
+    if (!command || isKeyDown && e.repeat) {
         return;
     }
 
